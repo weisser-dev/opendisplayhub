@@ -1,6 +1,6 @@
 const key = 'opendisplayhub.notes.v1';
 const $ = selector => document.querySelector(selector);
-let notes = [], editing = null, recognition = null;
+let notes = [], editing = null, recognition = null, initialDraft = '', returnFocus = null;
 const status = $('#status');
 try { const saved = JSON.parse(localStorage.getItem(key) || '[]'); if (!Array.isArray(saved)) throw Error(); notes = saved; }
 catch { status.textContent = tr('Notizen konnten nicht geladen werden. Prüfe den lokalen Speicher.'); }
@@ -25,16 +25,22 @@ function render() {
   }
 }
 function edit(note = null) {
-  editing = note?.id || null; $('#home').hidden = true; $('#editor').hidden = false;
+  returnFocus = document.activeElement; editing = note?.id || null; $('#home').hidden = true; $('#editor').hidden = false;
   $('#editor-title').textContent = note ? tr('Notiz bearbeiten') : tr('Neue Notiz');
   $('#note-title').value = note?.title || ''; $('#note-text').value = note?.text || ''; $('#delete').hidden = !note; $('#speech-status').textContent = '';
+  initialDraft = JSON.stringify([$('#note-title').value, $('#note-text').value]);
   $('#note-text').focus();
 }
-function home() { if (recognition) recognition.stop(); $('#editor').hidden = true; $('#home').hidden = false; render(); $('#new').focus(); }
+function home() { if (recognition) recognition.stop(); $('#editor').hidden = true; $('#home').hidden = false; render(); if (returnFocus?.isConnected && !returnFocus.hidden) returnFocus.focus(); else $('#new').focus(); }
+function cancelEdit() {
+  const current = JSON.stringify([$('#note-title').value, $('#note-text').value]);
+  if (current !== initialDraft && !confirm(tr('Änderungen verwerfen?'))) return;
+  home();
+}
 $('#search').addEventListener('input', render);
-$('#new').addEventListener('click', () => edit()); $('#cancel').addEventListener('click', home);
+$('#new').addEventListener('click', () => edit()); $('#cancel').addEventListener('click', cancelEdit);
 $('#save').addEventListener('click', () => {
-  const text = $('#note-text').value.trim(); if (!text) { $('#speech-status').textContent = tr('Bitte gib zuerst eine Notiz ein.'); return; }
+  const text = $('#note-text').value.trim(); if (!text) { $('#speech-status').textContent = tr('Bitte gib zuerst eine Notiz ein.'); $('#note-text').focus(); return; }
   const existing = notes.find(note => note.id === editing);
   const item = { id: editing || `${Date.now()}-${Math.random().toString(36).slice(2)}`, title: $('#note-title').value.trim(), text, created: existing?.created || existing?.updated || Date.now(), updated: Date.now() };
   if (persist([item, ...notes.filter(note => note.id !== editing)])) home();
@@ -53,6 +59,14 @@ if (SpeechRecognition) {
     try { recognition.start(); } catch { recognition = null; $('#speech-status').textContent = tr('Spracheingabe konnte nicht gestartet werden.'); }
   });
 }
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !$('#editor').hidden) { event.preventDefault(); cancelEdit(); return; }
+  if (!['ArrowDown', 'ArrowUp'].includes(event.key) || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+  const section = $('#editor').hidden ? $('#home') : $('#editor');
+  const controls = [...section.querySelectorAll('button, input, textarea')].filter(el => el.offsetParent !== null && !el.disabled);
+  const index = controls.indexOf(document.activeElement);
+  if (index !== -1) { event.preventDefault(); controls[Math.max(0, Math.min(controls.length - 1, index + (event.key === 'ArrowDown' ? 1 : -1)))].focus(); }
+});
 window.addEventListener('languagechange', () => { $('#editor-title').textContent = tr(editing ? 'Notiz bearbeiten' : 'Neue Notiz'); render(); });
 render();
 

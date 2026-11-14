@@ -11,6 +11,7 @@ function setup(app) {
   document.querySelector('#dialog-title').textContent = item.name;
   document.querySelector('#feedback').textContent = '';
   openApp.href = appUrl;
+  document.querySelector('#app-url').value = appUrl;
   const qr = qrcode(0, 'M'); qr.addData(appUrl); qr.make();
   document.querySelector('#qr-code').innerHTML = qr.createSvgTag({ scalable: true, margin: 4 });
   dialog.showModal();
@@ -47,7 +48,7 @@ function render() {
     const button = document.createElement('button'); button.className = 'filter';
     button.setAttribute('aria-pressed', String(category === selectedCategory));
     const name = category ? localize(apps.find(app => app.category === category)).category : tr('Alle');
-    button.textContent = name; button.addEventListener('click', () => { selectedCategory = category; render(); }); filters.append(button);
+    button.textContent = name; button.addEventListener('click', () => { selectedCategory = category; render(); document.querySelectorAll('#categories .filter')[category ? categories.indexOf(category) + 1 : 0].focus(); }); filters.append(button);
     if (category) {
       const card = document.createElement('button'); card.className = 'category-card';
       const symbol = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); symbol.setAttribute('viewBox', '0 0 32 32'); symbol.setAttribute('aria-hidden', 'true');
@@ -60,7 +61,7 @@ function render() {
   const matches = apps.filter(app => { const item = localize(app); return (!selectedCategory || app.category === selectedCategory) && `${item.name} ${item.description} ${item.category}`.toLocaleLowerCase().includes(query); });
   document.querySelector('#count').textContent = `${matches.length} ${matches.length === 1 ? 'App' : 'Apps'}`;
   grid.replaceChildren();
-  if (!matches.length) { grid.textContent = tr('Keine passenden Apps gefunden.'); return; }
+  if (!matches.length) { const empty = document.createElement('div'); empty.className = 'no-results'; const message = document.createElement('p'); message.textContent = tr('Keine passenden Apps gefunden.'); const reset = document.createElement('button'); reset.className = 'card-link'; reset.textContent = tr('Filter zurücksetzen'); reset.addEventListener('click', () => { search.value = ''; headerSearch.value = ''; selectedCategory = ''; render(); search.focus(); }); empty.append(message, reset); grid.append(empty); return; }
   matches.forEach(app => {
     const item = localize(app), card = document.createElement('article'); card.className = 'card';
     const visual = document.createElement('div'); visual.className = 'card-visual'; visual.append(icon(app));
