@@ -8,16 +8,16 @@ await cp('node_modules/qrcode-generator/dist/qrcode.js', path.join(out, 'qrcode.
 const apps = [];
 for (const entry of await readdir('apps', { withFileTypes: true })) {
   if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
-  if (!/^[a-z0-9-]+$/.test(entry.name)) throw new Error(`Ungültiger App-Ordner: ${entry.name}`);
+  if (!/^[a-z0-9-]+$/.test(entry.name)) throw new Error(`Invalid app folder: ${entry.name}`);
   const dir = path.join('apps', entry.name);
   const meta = JSON.parse(await readFile(path.join(dir, 'app.json'), 'utf8'));
-  for (const field of ['name', 'description', 'category']) if (typeof meta[field] !== 'string' || !meta[field].trim()) throw new Error(`${dir}: ${field} fehlt`);
+  for (const field of ['name', 'description', 'category']) if (typeof meta[field] !== 'string' || !meta[field].trim()) throw new Error(`${dir}: ${field} is missing`);
   await readFile(path.join(dir, 'index.html'));
-  apps.push({ name: meta.name, description: meta.description, category: meta.category, url: `apps/${entry.name}/`, icon: meta.icon || '✦', color: meta.color || '#a8b5ff' });
+  apps.push({ name: meta.name, description: meta.description, category: meta.category, translations: meta.translations || {}, url: `apps/${entry.name}/`, icon: meta.icon || '✦', color: meta.color || '#a8b5ff' });
   await cp(dir, path.join(out, 'apps', entry.name), { recursive: true });
 }
 await writeFile(path.join(out, 'apps.json'), JSON.stringify(apps, null, 2));
-console.log(`${apps.length} Apps gebaut.`);
+console.log(`${apps.length} apps built.`);
 // Versioned precache: an update is installed only after every local asset is available.
 const { createHash } = await import('node:crypto');
 async function files(dir) {
