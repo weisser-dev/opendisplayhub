@@ -13,7 +13,9 @@ for (const entry of await readdir('apps', { withFileTypes: true })) {
   const meta = JSON.parse(await readFile(path.join(dir, 'app.json'), 'utf8'));
   for (const field of ['name', 'description', 'category']) if (typeof meta[field] !== 'string' || !meta[field].trim()) throw new Error(`${dir}: ${field} is missing`);
   await readFile(path.join(dir, 'index.html'));
-  apps.push({ name: meta.name, description: meta.description, category: meta.category, translations: meta.translations || {}, url: `apps/${entry.name}/`, icon: meta.icon || '✦', color: meta.color || '#a8b5ff' });
+  if (!/^[a-zA-Z0-9_-]+\.svg$/.test(meta.icon || 'icon.svg')) throw new Error(`${dir}: icon must be a local SVG filename`);
+  await readFile(path.join(dir, meta.icon || 'icon.svg')); 
+  apps.push({ name: meta.name, description: meta.description, category: meta.category, translations: meta.translations || {}, url: `apps/${entry.name}/`, icon: `apps/${entry.name}/${meta.icon || 'icon.svg'}`, color: meta.color || '#a8b5ff' });
   await cp(dir, path.join(out, 'apps', entry.name), { recursive: true });
 }
 await writeFile(path.join(out, 'apps.json'), JSON.stringify(apps, null, 2));

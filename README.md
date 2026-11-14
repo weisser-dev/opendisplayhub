@@ -14,7 +14,7 @@ Open the HTTP URL printed by the server, not a file URL. QR codes contain the cu
 
 ## Add an app
 
-1. Create `apps/my-app/` with an `index.html` and its static assets. Use relative asset paths.
+1. Create `apps/my-app/` with an `index.html`, an `icon.svg`, and its static assets. Icons must be local SVG files. Use relative asset paths.
 2. Add an `app.json`:
 
 ```json
@@ -23,7 +23,7 @@ Open the HTTP URL printed by the server, not a file URL. QR codes contain the cu
   "description": "A short description.",
   "category": "Utility",
   "translations": { "de": { "name": "Meine App", "description": "Eine kurze Beschreibung.", "category": "Werkzeuge" } },
-  "icon": "✦",
+  "icon": "icon.svg",
   "color": "#c2f279"
 }
 ```

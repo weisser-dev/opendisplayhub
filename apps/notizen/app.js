@@ -46,10 +46,10 @@ if (SpeechRecognition) {
   $('#dictate').addEventListener('click', () => {
     if (recognition) { recognition.stop(); return; }
     recognition = new SpeechRecognition(); recognition.lang = window.appLanguage() === 'de' ? 'de-DE' : 'en-US'; recognition.interimResults = false;
-    recognition.onstart = () => { $('#dictate').textContent = tr('■ Spracheingabe stoppen'); $('#speech-status').textContent = tr('Ich höre zu …'); };
+    recognition.onstart = () => { $('#dictate').textContent = tr('Spracheingabe stoppen'); $('#speech-status').textContent = tr('Ich höre zu …'); };
     recognition.onresult = event => { const field = $('#note-text'); field.value += (field.value.trim() ? ' ' : '') + event.results[0][0].transcript; };
     recognition.onerror = () => { $('#speech-status').textContent = tr('Spracheingabe nicht verfügbar. Nutze die Spracheingabe deiner Tastatur oder schreibe deine Notiz.'); };
-    recognition.onend = () => { recognition = null; $('#dictate').textContent = tr('● Spracheingabe starten'); if ($('#speech-status').textContent === tr('Ich höre zu …')) $('#speech-status').textContent = tr('Spracheingabe beendet. Du kannst deine Notiz bearbeiten und speichern.'); };
+    recognition.onend = () => { recognition = null; $('#dictate').textContent = tr('Spracheingabe starten'); if ($('#speech-status').textContent === tr('Ich höre zu …')) $('#speech-status').textContent = tr('Spracheingabe beendet. Du kannst deine Notiz bearbeiten und speichern.'); };
     try { recognition.start(); } catch { recognition = null; $('#speech-status').textContent = tr('Spracheingabe konnte nicht gestartet werden.'); }
   });
 }
